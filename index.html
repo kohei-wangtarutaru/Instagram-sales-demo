@@ -163,6 +163,30 @@
       margin-top: 2px;
     }
 
+    /* 戦略サマリー */
+
+    .strategy-box {
+      border-radius: 12px;
+      border: 1px solid #e5e7eb;
+      background: #f9fafb;
+      padding: 8px 10px;
+      margin-top: 8px;
+      font-size: 11px;
+      color: #4b5563;
+    }
+
+    .strategy-title {
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 4px;
+      color: #111827;
+    }
+
+    .strategy-body {
+      white-space: pre-wrap;
+      line-height: 1.5;
+    }
+
     /* フィード部分 */
 
     .feed-header {
@@ -423,12 +447,20 @@
           </div>
 
           <p class="subtitle">
-            実際に運用した場合の<strong>9投稿イメージ</strong>です。<br />
-            営業現場では、この画面を見せながら説明します。
+            まず、この店舗に合わせた<strong>インスタ運用の全体戦略</strong>を整理します。<br />
+            そのうえで、下に9投稿分の具体的な投稿イメージを並べています。
           </p>
 
+          <!-- 戦略サマリー -->
+          <div id="strategyBox" class="strategy-box" style="display: none;">
+            <div class="strategy-title">この店舗に合わせたインスタ運用戦略</div>
+            <div id="strategyBody" class="strategy-body"></div>
+          </div>
+
+          <!-- 9投稿グリッド -->
           <div id="feedGrid" class="feed-grid"></div>
 
+          <!-- Instagram風カード -->
           <div id="instaCard" class="insta-card" style="display: none;">
             <div class="insta-header">
               <div class="insta-avatar"></div>
@@ -468,6 +500,7 @@
     let currentImageUrls = [];
     let currentPosts = [];
     let selectedIndex = 0;
+    let currentStrategySummary = '';
 
     const stepForm = document.getElementById('step-form');
     const stepFeed = document.getElementById('step-feed');
@@ -491,6 +524,9 @@
     const feedSubtitle = document.getElementById('feedSubtitle');
     const feedGrid = document.getElementById('feedGrid');
 
+    const strategyBox = document.getElementById('strategyBox');
+    const strategyBody = document.getElementById('strategyBody');
+
     const instaCard = document.getElementById('instaCard');
     const instaName = document.getElementById('instaName');
     const instaSub = document.getElementById('instaSub');
@@ -505,7 +541,8 @@
         currentImageUrls = [];
         previewImage.style.display = 'none';
         previewPlaceholder.style.display = 'flex';
-        fileHelper.textContent = '最大9枚まで選択できます（1〜9枚）。投稿ごとに別の写真を割り当てます。';
+        fileHelper.textContent =
+          '最大9枚まで選択できます（1〜9枚）。投稿ごとに別の写真を割り当てます。';
         return;
       }
 
@@ -536,6 +573,15 @@
       const concept = conceptInput.value || '';
       const menuText = menuTextInput.value || '';
 
+      currentStrategySummary = generateStrategySummary({
+        storeName,
+        category,
+        target,
+        goal,
+        concept,
+        menuText,
+      });
+
       currentPosts = generateNinePosts({
         storeName,
         category,
@@ -550,6 +596,10 @@
         feedStoreName.textContent = storeName;
         feedSubtitle.textContent =
           category + ' | 提案イメージ：9投稿分のインスタ運用';
+
+        // 戦略サマリーを反映
+        strategyBody.textContent = currentStrategySummary;
+        strategyBox.style.display = currentStrategySummary ? 'block' : 'none';
 
         renderFeedGrid();
         renderInstaCard();
@@ -647,6 +697,69 @@
       instaCaption.textContent = storeName + ' ' + post.caption;
     }
 
+    // 店舗情報から「ブランド戦略サマリー」を生成（AI無しロジック）
+    function generateStrategySummary(params) {
+      const storeName = params.storeName || '本日のお店';
+      const category = params.category || '飲食店';
+      const target = params.target || '想定しているお客様';
+      const goal = params.goal || '来店数の増加';
+      const concept = params.concept || 'お店の世界観';
+      const menuText = params.menuText || '';
+
+      const menus = menuText
+        .split(',')
+        .map(function (m) {
+          return m.trim();
+        })
+        .filter(function (m) {
+          return m.length > 0;
+        });
+
+      const mainMenu = menus[0] || '看板メニュー';
+      const secondMenu = menus[1] || '季節メニュー';
+
+      let text = '';
+      text += '■全体方針\n';
+      text +=
+        storeName +
+        '（' +
+        category +
+        '）のInstagramでは、' +
+        target +
+        'に向けて「' +
+        concept +
+        '」を伝えながら、' +
+        goal +
+        'ことを目指します。\n\n';
+
+      text += '■投稿の軸\n';
+      text +=
+        '・看板メニュー（' +
+        mainMenu +
+        '）で店の強みと世界観を伝える\n';
+      text +=
+        '・店内の空間や体験シーンで「どんな時間を過ごせるか」をイメージさせる\n';
+      text +=
+        '・' +
+        (secondMenu || '季節メニュー') +
+        ' など季節感のある一皿で、フォローする理由をつくる\n';
+      text +=
+        '・職人のこだわりやストーリーで、価格以上の価値を感じてもらう\n';
+      text +=
+        '・予約方法やアクセス情報の投稿で、「気になった瞬間」に来店につなげる\n\n';
+
+      text += '■トーン＆マナー\n';
+      text +=
+        '落ち着き・上質さ・大人っぽさを大事にしつつ、写真や色味を統一してブランド感を出します。\n\n';
+
+      text += '■この9投稿セットでできること\n';
+      text +=
+        '認知 → 興味 → 比較検討 → 予約 → ファン化 までを1セットの流れでカバーする構成になっています。';
+
+      return text;
+    }
+
+    // 9投稿分のテキスト構成ロジック
     function generateNinePosts(params) {
       const storeName = params.storeName || '本日のお店';
       const category = params.category || '';
