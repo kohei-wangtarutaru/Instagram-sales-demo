@@ -157,6 +157,12 @@
       margin-top: 4px;
     }
 
+    .file-helper {
+      font-size: 10px;
+      color: #9ca3af;
+      margin-top: 2px;
+    }
+
     /* フィード部分 */
 
     .feed-header {
@@ -389,7 +395,11 @@
               type="file"
               accept="image/*"
               class="file-input"
+              multiple
             />
+            <div id="fileHelper" class="file-helper">
+              最大9枚まで選択できます（1〜9枚）。投稿ごとに別の写真を割り当てます。
+            </div>
           </div>
 
           <button
@@ -454,7 +464,8 @@
   </div>
 
   <script>
-    let currentImageUrl = null;
+    // 画像は複数（最大9枚）保持する
+    let currentImageUrls = [];
     let currentPosts = [];
     let selectedIndex = 0;
 
@@ -471,6 +482,7 @@
     const imageInput = document.getElementById('imageInput');
     const previewImage = document.getElementById('previewImage');
     const previewPlaceholder = document.getElementById('previewPlaceholder');
+    const fileHelper = document.getElementById('fileHelper');
 
     const generateButton = document.getElementById('generateButton');
     const backButton = document.getElementById('backButton');
@@ -486,15 +498,31 @@
     const instaImagePlaceholder = document.getElementById('instaImagePlaceholder');
     const instaCaption = document.getElementById('instaCaption');
 
+    // 複数枚画像選択
     imageInput.addEventListener('change', function (e) {
-      const file = e.target.files && e.target.files[0];
-      if (!file) return;
-      const url = URL.createObjectURL(file);
-      currentImageUrl = url;
+      const files = Array.from(e.target.files || []);
+      if (!files.length) {
+        currentImageUrls = [];
+        previewImage.style.display = 'none';
+        previewPlaceholder.style.display = 'flex';
+        fileHelper.textContent = '最大9枚まで選択できます（1〜9枚）。投稿ごとに別の写真を割り当てます。';
+        return;
+      }
 
-      previewImage.src = url;
+      // 最大9枚に制限
+      const limitedFiles = files.slice(0, 9);
+      currentImageUrls = limitedFiles.map(function (file) {
+        return URL.createObjectURL(file);
+      });
+
+      // プレビューは1枚目だけ表示
+      previewImage.src = currentImageUrls[0];
       previewImage.style.display = 'block';
       previewPlaceholder.style.display = 'none';
+
+      fileHelper.textContent =
+        currentImageUrls.length +
+        '枚の写真を選択中（9投稿に順番に割り当てます。足りない分は1枚目を使用）。';
     });
 
     generateButton.addEventListener('click', function () {
@@ -552,9 +580,12 @@
         wrapper.className = 'feed-card-image-wrapper';
 
         let img;
-        if (currentImageUrl) {
+        const imgUrl =
+          currentImageUrls[index] || currentImageUrls[0] || null;
+
+        if (imgUrl) {
           img = document.createElement('img');
-          img.src = currentImageUrl;
+          img.src = imgUrl;
           img.alt = post.theme;
           img.className = 'feed-card-image';
         } else {
@@ -601,8 +632,11 @@
       instaName.textContent = storeName;
       instaSub.textContent = '@' + storeName.replace(/\s/g, '');
 
-      if (currentImageUrl) {
-        instaImage.src = currentImageUrl;
+      const imgUrl =
+        currentImageUrls[selectedIndex] || currentImageUrls[0] || null;
+
+      if (imgUrl) {
+        instaImage.src = imgUrl;
         instaImage.style.display = 'block';
         instaImagePlaceholder.style.display = 'none';
       } else {
