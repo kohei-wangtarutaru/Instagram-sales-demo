@@ -1,0 +1,763 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>営業用インスタ運用デモ</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+      background: #f3f4f6;
+    }
+
+    .app {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .phone-frame {
+      width: 390px;
+      max-width: 100%;
+      height: 760px;
+      max-height: calc(100vh - 32px);
+      background: #fff;
+      border-radius: 32px;
+      box-shadow: 0 24px 60px rgba(15, 23, 42, 0.25);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .phone-header {
+      height: 44px;
+      padding: 0 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12px;
+      color: #6b7280;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    .phone-content {
+      flex: 1;
+      padding: 16px;
+      overflow-y: auto;
+    }
+
+    .step {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .step-title {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .subtitle {
+      font-size: 12px;
+      color: #6b7280;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .field-label {
+      font-size: 12px;
+      color: #6b7280;
+    }
+
+    .input,
+    .textarea {
+      padding: 8px 10px;
+      border-radius: 10px;
+      border: 1px solid #e5e7eb;
+      font-size: 13px;
+    }
+
+    .textarea {
+      resize: vertical;
+    }
+
+    .input:focus,
+    .textarea:focus {
+      outline: none;
+      border-color: #111827;
+    }
+
+    .primary-button,
+    .secondary-button {
+      padding: 10px 14px;
+      border-radius: 999px;
+      font-size: 13px;
+      border: none;
+      cursor: pointer;
+    }
+
+    .primary-button {
+      background: #111827;
+      color: #fff;
+    }
+
+    .primary-button:disabled {
+      opacity: 0.5;
+      cursor: default;
+    }
+
+    .secondary-button {
+      background: #f3f4f6;
+      color: #111827;
+    }
+
+    .secondary-button.small {
+      padding: 6px 10px;
+      font-size: 11px;
+    }
+
+    .preview-card {
+      border-radius: 16px;
+      border: 1px solid #e5e7eb;
+      padding: 8px;
+      background: #f9fafb;
+    }
+
+    .preview-image {
+      width: 100%;
+      border-radius: 12px;
+      object-fit: cover;
+    }
+
+    .preview-placeholder {
+      height: 160px;
+      border-radius: 12px;
+      background: #e5e7eb;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #9ca3af;
+      font-size: 13px;
+    }
+
+    .file-input {
+      font-size: 11px;
+      margin-top: 4px;
+    }
+
+    /* フィード部分 */
+
+    .feed-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .feed-subtitle {
+      font-size: 11px;
+      color: #6b7280;
+    }
+
+    .feed-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 4px;
+      margin-top: 8px;
+    }
+
+    .feed-card {
+      padding: 0;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+    }
+
+    .feed-card-image-wrapper {
+      position: relative;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .feed-card-image {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      object-fit: cover;
+    }
+
+    .feed-card-image.placeholder {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      background: #e5e7eb;
+    }
+
+    .feed-card-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        to top,
+        rgba(0, 0, 0, 0.55),
+        rgba(0, 0, 0, 0.05)
+      );
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 4px;
+      color: #f9fafb;
+      font-size: 9px;
+    }
+
+    .feed-card-badge {
+      align-self: flex-start;
+      padding: 1px 5px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.85);
+      font-size: 9px;
+    }
+
+    .feed-card-theme {
+      font-weight: 600;
+      font-size: 9px;
+    }
+
+    .feed-card-active .feed-card-image-wrapper {
+      outline: 2px solid #111827;
+    }
+
+    /* Instagram風カード */
+
+    .insta-card {
+      border-radius: 16px;
+      border: 1px solid #e5e7eb;
+      overflow: hidden;
+      background: #fff;
+      margin-top: 12px;
+    }
+
+    .insta-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+    }
+
+    .insta-avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 999px;
+      background: #d1d5db;
+    }
+
+    .insta-name {
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .insta-sub {
+      font-size: 11px;
+      color: #9ca3af;
+    }
+
+    .insta-image {
+      width: 100%;
+      max-height: 260px;
+      object-fit: cover;
+    }
+
+    .insta-image.placeholder {
+      width: 100%;
+      max-height: 260px;
+      background: #e5e7eb;
+    }
+
+    .insta-actions {
+      display: flex;
+      gap: 12px;
+      padding: 8px 10px;
+      font-size: 16px;
+    }
+
+    .insta-caption {
+      padding: 0 10px 10px;
+      font-size: 12px;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="phone-frame">
+      <header class="phone-header">
+        <span class="phone-time">12:30</span>
+        <span class="phone-status">営業デモ</span>
+      </header>
+
+      <main class="phone-content">
+        <!-- フォーム画面 -->
+        <div id="step-form" class="step">
+          <h1 class="step-title">営業用デモ設定</h1>
+          <p class="subtitle">
+            事前情報 or 店舗で得た情報を入力すると、<br />
+            「実際に運用したらこうなる」9投稿分のデモを自動生成します。
+          </p>
+
+          <label class="field">
+            <span class="field-label">店舗名</span>
+            <input
+              id="storeName"
+              class="input"
+              value="蕎麦屋 尖"
+              placeholder="例）蕎麦屋 尖"
+            />
+          </label>
+
+          <label class="field">
+            <span class="field-label">カテゴリー</span>
+            <input
+              id="category"
+              class="input"
+              value="蕎麦・和食"
+              placeholder="例）蕎麦・和食"
+            />
+          </label>
+
+          <label class="field">
+            <span class="field-label">ターゲット</span>
+            <input
+              id="target"
+              class="input"
+              value="20〜30代の食通"
+              placeholder="例）20〜30代の食通"
+            />
+          </label>
+
+          <label class="field">
+            <span class="field-label">インスタ運用の目的</span>
+            <input
+              id="goal"
+              class="input"
+              value="新規客の増加"
+              placeholder="例）新規客の増加 / 平日夜の集客"
+            />
+          </label>
+
+          <label class="field">
+            <span class="field-label">お店のコンセプト・雰囲気</span>
+            <textarea
+              id="concept"
+              class="textarea"
+              rows="2"
+            >黒基調のカウンターで大人が静かに楽しめる蕎麦コース</textarea>
+          </label>
+
+          <label class="field">
+            <span class="field-label">看板メニュー・コース内容</span>
+            <textarea
+              id="menuText"
+              class="textarea"
+              rows="2"
+            >鴨そば, 季節の天ぷら, 日本酒ペアリング</textarea>
+          </label>
+
+          <div class="field">
+            <span class="field-label">写真（事前 or その場で撮影）</span>
+            <div class="preview-card">
+              <img
+                id="previewImage"
+                class="preview-image"
+                style="display: none;"
+                alt="プレビュー"
+              />
+              <div id="previewPlaceholder" class="preview-placeholder">
+                写真プレビュー
+              </div>
+            </div>
+            <input
+              id="imageInput"
+              type="file"
+              accept="image/*"
+              class="file-input"
+            />
+          </div>
+
+          <button
+            id="generateButton"
+            class="primary-button"
+          >
+            「9投稿のインスタ運用」を生成する
+          </button>
+        </div>
+
+        <!-- フィード画面 -->
+        <div id="step-feed" class="step" style="display: none;">
+          <div class="feed-header">
+            <div>
+              <h2 id="feedStoreName" class="step-title"></h2>
+              <p id="feedSubtitle" class="feed-subtitle"></p>
+            </div>
+            <button id="backButton" class="secondary-button small">
+              情報を修正する
+            </button>
+          </div>
+
+          <p class="subtitle">
+            実際に運用した場合の<strong>9投稿イメージ</strong>です。<br />
+            営業現場では、この画面を見せながら説明します。
+          </p>
+
+          <div id="feedGrid" class="feed-grid"></div>
+
+          <div id="instaCard" class="insta-card" style="display: none;">
+            <div class="insta-header">
+              <div class="insta-avatar"></div>
+              <div>
+                <div id="instaName" class="insta-name"></div>
+                <div id="instaSub" class="insta-sub"></div>
+              </div>
+            </div>
+
+            <img
+              id="instaImage"
+              class="insta-image"
+              style="display: none;"
+              alt="投稿画像"
+            />
+            <div
+              id="instaImagePlaceholder"
+              class="insta-image placeholder"
+              style="display: none;"
+            ></div>
+
+            <div class="insta-actions">
+              <span>♡</span>
+              <span>💬</span>
+              <span>📤</span>
+            </div>
+
+            <div id="instaCaption" class="insta-caption"></div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script>
+    let currentImageUrl = null;
+    let currentPosts = [];
+    let selectedIndex = 0;
+
+    const stepForm = document.getElementById('step-form');
+    const stepFeed = document.getElementById('step-feed');
+
+    const storeNameInput = document.getElementById('storeName');
+    const categoryInput = document.getElementById('category');
+    const targetInput = document.getElementById('target');
+    const goalInput = document.getElementById('goal');
+    const conceptInput = document.getElementById('concept');
+    const menuTextInput = document.getElementById('menuText');
+
+    const imageInput = document.getElementById('imageInput');
+    const previewImage = document.getElementById('previewImage');
+    const previewPlaceholder = document.getElementById('previewPlaceholder');
+
+    const generateButton = document.getElementById('generateButton');
+    const backButton = document.getElementById('backButton');
+
+    const feedStoreName = document.getElementById('feedStoreName');
+    const feedSubtitle = document.getElementById('feedSubtitle');
+    const feedGrid = document.getElementById('feedGrid');
+
+    const instaCard = document.getElementById('instaCard');
+    const instaName = document.getElementById('instaName');
+    const instaSub = document.getElementById('instaSub');
+    const instaImage = document.getElementById('instaImage');
+    const instaImagePlaceholder = document.getElementById('instaImagePlaceholder');
+    const instaCaption = document.getElementById('instaCaption');
+
+    imageInput.addEventListener('change', function (e) {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+      const url = URL.createObjectURL(file);
+      currentImageUrl = url;
+
+      previewImage.src = url;
+      previewImage.style.display = 'block';
+      previewPlaceholder.style.display = 'none';
+    });
+
+    generateButton.addEventListener('click', function () {
+      generateButton.disabled = true;
+      generateButton.textContent = '9投稿のデモを生成中…';
+
+      const storeName = storeNameInput.value || '本日のお店';
+      const category = categoryInput.value || '';
+      const target = targetInput.value || '';
+      const goal = goalInput.value || '';
+      const concept = conceptInput.value || '';
+      const menuText = menuTextInput.value || '';
+
+      currentPosts = generateNinePosts({
+        storeName,
+        category,
+        target,
+        goal,
+        concept,
+        menuText,
+      });
+      selectedIndex = 0;
+
+      setTimeout(function () {
+        feedStoreName.textContent = storeName;
+        feedSubtitle.textContent =
+          category + ' | 提案イメージ：9投稿分のインスタ運用';
+
+        renderFeedGrid();
+        renderInstaCard();
+
+        stepForm.style.display = 'none';
+        stepFeed.style.display = 'flex';
+
+        generateButton.disabled = false;
+        generateButton.textContent = '「9投稿のインスタ運用」を生成する';
+      }, 600);
+    });
+
+    backButton.addEventListener('click', function () {
+      stepFeed.style.display = 'none';
+      stepForm.style.display = 'flex';
+    });
+
+    function renderFeedGrid() {
+      feedGrid.innerHTML = '';
+
+      currentPosts.forEach(function (post, index) {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className =
+          'feed-card' + (index === selectedIndex ? ' feed-card-active' : '');
+
+        const wrapper = document.createElement('div');
+        wrapper.className = 'feed-card-image-wrapper';
+
+        let img;
+        if (currentImageUrl) {
+          img = document.createElement('img');
+          img.src = currentImageUrl;
+          img.alt = post.theme;
+          img.className = 'feed-card-image';
+        } else {
+          img = document.createElement('div');
+          img.className = 'feed-card-image placeholder';
+        }
+
+        const overlay = document.createElement('div');
+        overlay.className = 'feed-card-overlay';
+
+        const badge = document.createElement('span');
+        badge.className = 'feed-card-badge';
+        badge.textContent = index + 1;
+
+        const theme = document.createElement('span');
+        theme.className = 'feed-card-theme';
+        theme.textContent = post.theme;
+
+        overlay.appendChild(badge);
+        overlay.appendChild(theme);
+        wrapper.appendChild(img);
+        wrapper.appendChild(overlay);
+        button.appendChild(wrapper);
+
+        button.addEventListener('click', function () {
+          selectedIndex = index;
+          renderFeedGrid();
+          renderInstaCard();
+        });
+
+        feedGrid.appendChild(button);
+      });
+    }
+
+    function renderInstaCard() {
+      const storeName = storeNameInput.value || '本日のお店';
+      const post = currentPosts[selectedIndex];
+      if (!post) {
+        instaCard.style.display = 'none';
+        return;
+      }
+
+      instaCard.style.display = 'block';
+      instaName.textContent = storeName;
+      instaSub.textContent = '@' + storeName.replace(/\s/g, '');
+
+      if (currentImageUrl) {
+        instaImage.src = currentImageUrl;
+        instaImage.style.display = 'block';
+        instaImagePlaceholder.style.display = 'none';
+      } else {
+        instaImage.style.display = 'none';
+        instaImagePlaceholder.style.display = 'block';
+      }
+
+      instaCaption.textContent = storeName + ' ' + post.caption;
+    }
+
+    function generateNinePosts(params) {
+      const storeName = params.storeName || '本日のお店';
+      const category = params.category || '';
+      const target = params.target || '';
+      const goal = params.goal || '';
+      const concept = params.concept || '';
+      const menuText = params.menuText || '';
+
+      const menus = menuText
+        .split(',')
+        .map(function (m) {
+          return m.trim();
+        })
+        .filter(function (m) {
+          return m.length > 0;
+        });
+
+      const mainMenu = menus[0] || '看板メニュー';
+      const secondMenu = menus[1] || '季節メニュー';
+      const thirdMenu = menus[2] || 'おすすめの一品';
+
+      const baseHashtags = [
+        '#' + storeName.replace(/\s/g, ''),
+        category ? '#' + category.replace(/\s/g, '') : '',
+        '#グルメ',
+        '#食べ歩き',
+      ].filter(Boolean);
+
+      const tagLine = baseHashtags.join(' ');
+
+      return [
+        {
+          id: 1,
+          theme: '看板メニュー紹介',
+          caption:
+            'まずは' +
+            storeName +
+            'の顔ともいえる一皿、' +
+            mainMenu +
+            'から。\n' +
+            concept +
+            '\n\n' +
+            target +
+            'のお客様に向けて、' +
+            goal +
+            'を意識した投稿です。\n\n' +
+            tagLine,
+        },
+        {
+          id: 2,
+          theme: '店内の雰囲気紹介',
+          caption:
+            storeName +
+            'の魅力は料理だけではなく、' +
+            concept +
+            ' という空間そのもの。\n' +
+            '「今日は少しだけ特別な夜にしたい」そんな' +
+            target +
+            'におすすめの一席です。\n\n' +
+            goal +
+            'につながる、世界観訴求型の一枚として投稿します。\n\n' +
+            tagLine,
+        },
+        {
+          id: 3,
+          theme: '季節のおすすめ',
+          caption:
+            'その時々の旬を取り入れた、季節限定のおすすめメニューもご用意しています。\n' +
+            secondMenu +
+            ' など、時期によって内容が変わるため、フォローして最新情報をチェックしていただきたい投稿です。\n\n' +
+            goal +
+            'に向けて、リピートのきっかけを作るポジションの投稿です。\n\n' +
+            tagLine,
+        },
+        {
+          id: 4,
+          theme: 'コース全体のイメージ',
+          caption:
+            storeName +
+            'では、' +
+            (menus.length ? menus.join('・') : 'コース仕立て') +
+            ' で一晩を通して楽しんでいただけます。\n' +
+            '写真では伝えきれない流れや余韻を、キャプションで丁寧に補完する構成です。\n\n' +
+            '価格やコース内容の概要を載せることで、' +
+            goal +
+            'に直結する「来店イメージ」を持ってもらいます。\n\n' +
+            tagLine,
+        },
+        {
+          id: 5,
+          theme: 'シェフ・職人のこだわり',
+          caption:
+            '一皿一皿に込めた想いや、素材の選び方など、' +
+            storeName +
+            'ならではのストーリーを紹介します。\n' +
+            'オーナーやシェフの横顔が伝わることで、' +
+            target +
+            'の共感を生み、価格以上の価値を感じてもらう狙いです。\n\n' +
+            tagLine,
+        },
+        {
+          id: 6,
+          theme: '日本酒・ドリンクペアリング',
+          caption:
+            thirdMenu +
+            ' に合わせて、日本酒やドリンクのペアリング提案も行っています。\n' +
+            '料理とお酒の組み合わせまで提案することで、「ここに来れば間違いない」と思ってもらう投稿です。\n\n' +
+            goal +
+            'の中でも、単価アップや特別な日の利用増加に寄与するポジションです。\n\n' +
+            tagLine,
+        },
+        {
+          id: 7,
+          theme: '利用シーンの提案',
+          caption:
+            '記念日やちょっと贅沢をしたい日、仕事終わりのご褒美など、' +
+            storeName +
+            'のおすすめ利用シーンをご提案します。\n' +
+            target +
+            'が「自分ごと」として想像しやすいようなシチュエーションを具体的に描きます。\n\n' +
+            tagLine,
+        },
+        {
+          id: 8,
+          theme: '予約方法・アクセス案内',
+          caption:
+            goal +
+            'を達成するうえで欠かせない、予約導線やアクセス情報もしっかり発信します。\n' +
+            '営業時間や最寄り駅、予約リンクなどをまとめておくことで、「気になった瞬間」にアクションしてもらえる投稿です。\n\n' +
+            tagLine,
+        },
+        {
+          id: 9,
+          theme: '最後の一押し・ブランドメッセージ',
+          caption:
+            storeName +
+            'が大事にしている価値観や、ブランドとして目指している姿を、言葉にして届ける投稿です。\n' +
+            concept +
+            '\n\nフィード全体を締めくくる「ブランドメッセージ」として、' +
+            target +
+            'に長期的なファンになっていただくことを狙います。\n\n' +
+            tagLine,
+        },
+      ];
+    }
+  </script>
+</body>
+</html>
