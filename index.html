@@ -163,28 +163,69 @@
       margin-top: 2px;
     }
 
-    /* 戦略サマリー */
+    /* 戦略カード */
 
-    .strategy-box {
-      border-radius: 12px;
-      border: 1px solid #e5e7eb;
-      background: #f9fafb;
-      padding: 8px 10px;
+    .strategy-card {
       margin-top: 8px;
+      border-radius: 16px;
+      border: 1px solid #e5e7eb;
+      background: linear-gradient(135deg, #f9fafb 0%, #eef2ff 50%, #f9fafb 100%);
+      padding: 10px 12px;
       font-size: 11px;
-      color: #4b5563;
+      color: #374151;
     }
 
-    .strategy-title {
-      font-size: 12px;
+    .strategy-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+
+    .strategy-chip {
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: rgba(17, 24, 39, 0.9);
+      color: #f9fafb;
+      font-size: 10px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .strategy-store {
+      font-size: 11px;
       font-weight: 600;
-      margin-bottom: 4px;
       color: #111827;
     }
 
-    .strategy-body {
+    .strategy-row {
+      padding: 4px 0;
+      border-top: 1px solid rgba(148, 163, 184, 0.4);
+    }
+
+    .strategy-row:first-of-type {
+      border-top: none;
+    }
+
+    .strategy-row-label {
+      font-size: 10px;
+      font-weight: 600;
+      color: #6b7280;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 2px;
+    }
+
+    .strategy-row-body {
+      font-size: 11px;
+      line-height: 1.45;
       white-space: pre-wrap;
-      line-height: 1.5;
+    }
+
+    .strategy-tagline {
+      margin-top: 6px;
+      font-size: 10px;
+      color: #6b7280;
     }
 
     /* フィード部分 */
@@ -447,14 +488,55 @@
           </div>
 
           <p class="subtitle">
-            まず、この店舗に合わせた<strong>インスタ運用の全体戦略</strong>を整理します。<br />
+            まず、この店舗に合わせた<strong>インスタ運用のブランド戦略</strong>を1枚にまとめます。<br />
             そのうえで、下に9投稿分の具体的な投稿イメージを並べています。
           </p>
 
-          <!-- 戦略サマリー -->
-          <div id="strategyBox" class="strategy-box" style="display: none;">
-            <div class="strategy-title">この店舗に合わせたインスタ運用戦略</div>
-            <div id="strategyBody" class="strategy-body"></div>
+          <!-- 戦略サマリカード -->
+          <div id="strategyCard" class="strategy-card" style="display: none;">
+            <div class="strategy-header">
+              <div class="strategy-chip">Brand Strategy</div>
+              <div id="strategyStore" class="strategy-store"></div>
+            </div>
+
+            <div class="strategy-row">
+              <div class="strategy-row-label">ブランド全体像</div>
+              <div id="strategyOverview" class="strategy-row-body"></div>
+            </div>
+
+            <div class="strategy-row">
+              <div class="strategy-row-label">ターゲットインサイト</div>
+              <div id="strategyTarget" class="strategy-row-body"></div>
+            </div>
+
+            <div class="strategy-row">
+              <div class="strategy-row-label">店舗の強み</div>
+              <div id="strategyStrength" class="strategy-row-body"></div>
+            </div>
+
+            <div class="strategy-row">
+              <div class="strategy-row-label">コアメッセージ</div>
+              <div id="strategyMessage" class="strategy-row-body"></div>
+            </div>
+
+            <div class="strategy-row">
+              <div class="strategy-row-label">運用目的</div>
+              <div id="strategyObjective" class="strategy-row-body"></div>
+            </div>
+
+            <div class="strategy-row">
+              <div class="strategy-row-label">投稿方針</div>
+              <div id="strategyContent" class="strategy-row-body"></div>
+            </div>
+
+            <div class="strategy-row">
+              <div class="strategy-row-label">ビジュアルガイド</div>
+              <div id="strategyVisual" class="strategy-row-body"></div>
+            </div>
+
+            <div class="strategy-tagline">
+              ※ 実際のサービスでは、この方針に沿って毎月の投稿案・撮影指示・画像加工ルールまで自動で設計します。
+            </div>
           </div>
 
           <!-- 9投稿グリッド -->
@@ -500,7 +582,7 @@
     let currentImageUrls = [];
     let currentPosts = [];
     let selectedIndex = 0;
-    let currentStrategySummary = '';
+    let currentStrategy = null;
 
     const stepForm = document.getElementById('step-form');
     const stepFeed = document.getElementById('step-feed');
@@ -524,8 +606,15 @@
     const feedSubtitle = document.getElementById('feedSubtitle');
     const feedGrid = document.getElementById('feedGrid');
 
-    const strategyBox = document.getElementById('strategyBox');
-    const strategyBody = document.getElementById('strategyBody');
+    const strategyCard = document.getElementById('strategyCard');
+    const strategyStore = document.getElementById('strategyStore');
+    const strategyOverview = document.getElementById('strategyOverview');
+    const strategyTarget = document.getElementById('strategyTarget');
+    const strategyStrength = document.getElementById('strategyStrength');
+    const strategyMessage = document.getElementById('strategyMessage');
+    const strategyObjective = document.getElementById('strategyObjective');
+    const strategyContent = document.getElementById('strategyContent');
+    const strategyVisual = document.getElementById('strategyVisual');
 
     const instaCard = document.getElementById('instaCard');
     const instaName = document.getElementById('instaName');
@@ -546,13 +635,11 @@
         return;
       }
 
-      // 最大9枚に制限
       const limitedFiles = files.slice(0, 9);
       currentImageUrls = limitedFiles.map(function (file) {
         return URL.createObjectURL(file);
       });
 
-      // プレビューは1枚目だけ表示
       previewImage.src = currentImageUrls[0];
       previewImage.style.display = 'block';
       previewPlaceholder.style.display = 'none';
@@ -567,13 +654,13 @@
       generateButton.textContent = '9投稿のデモを生成中…';
 
       const storeName = storeNameInput.value || '本日のお店';
-      const category = categoryInput.value || '';
-      const target = targetInput.value || '';
-      const goal = goalInput.value || '';
-      const concept = conceptInput.value || '';
+      const category = categoryInput.value || '飲食店';
+      const target = targetInput.value || '想定しているお客様';
+      const goal = goalInput.value || '来店数の増加';
+      const concept = conceptInput.value || 'お店の世界観';
       const menuText = menuTextInput.value || '';
 
-      currentStrategySummary = generateStrategySummary({
+      currentStrategy = generateStrategy({
         storeName,
         category,
         target,
@@ -595,11 +682,22 @@
       setTimeout(function () {
         feedStoreName.textContent = storeName;
         feedSubtitle.textContent =
-          category + ' | 提案イメージ：9投稿分のインスタ運用';
+          category + ' | 提案イメージ：ブランド戦略 + 9投稿のインスタ運用';
 
-        // 戦略サマリーを反映
-        strategyBody.textContent = currentStrategySummary;
-        strategyBox.style.display = currentStrategySummary ? 'block' : 'none';
+        // 戦略サマリカード反映
+        if (currentStrategy) {
+          strategyStore.textContent = storeName;
+          strategyOverview.textContent = currentStrategy.overview;
+          strategyTarget.textContent = currentStrategy.targetInsight;
+          strategyStrength.textContent = currentStrategy.strength;
+          strategyMessage.textContent = currentStrategy.coreMessage;
+          strategyObjective.textContent = currentStrategy.objective;
+          strategyContent.textContent = currentStrategy.contentStrategy;
+          strategyVisual.textContent = currentStrategy.visualGuide;
+          strategyCard.style.display = 'block';
+        } else {
+          strategyCard.style.display = 'none';
+        }
 
         renderFeedGrid();
         renderInstaCard();
@@ -697,8 +795,8 @@
       instaCaption.textContent = storeName + ' ' + post.caption;
     }
 
-    // 店舗情報から「ブランド戦略サマリー」を生成（AI無しロジック）
-    function generateStrategySummary(params) {
+    // 7セクションのブランド戦略オブジェクトを生成（AIなし版ロジック）
+    function generateStrategy(params) {
       const storeName = params.storeName || '本日のお店';
       const category = params.category || '飲食店';
       const target = params.target || '想定しているお客様';
@@ -717,46 +815,86 @@
 
       const mainMenu = menus[0] || '看板メニュー';
       const secondMenu = menus[1] || '季節メニュー';
+      const hasCourse = menus.length > 2;
 
-      let text = '';
-      text += '■全体方針\n';
-      text +=
-        storeName +
-        '（' +
+      const overview =
         category +
-        '）のInstagramでは、' +
-        target +
-        'に向けて「' +
+        'として、' +
+        storeName +
+        'は「' +
         concept +
-        '」を伝えながら、' +
-        goal +
-        'ことを目指します。\n\n';
-
-      text += '■投稿の軸\n';
-      text +=
-        '・看板メニュー（' +
+        '」を軸に、日常より少し特別な時間を提供するブランドとして設計します。' +
+        '競合の一般的な' +
+        category +
+        'と比べて、「' +
         mainMenu +
-        '）で店の強みと世界観を伝える\n';
-      text +=
-        '・店内の空間や体験シーンで「どんな時間を過ごせるか」をイメージさせる\n';
-      text +=
+        '」や空間演出を通じた体験価値を強く打ち出していきます。';
+
+      const targetInsight =
+        target +
+        'は、価格だけでなく「体験ストーリー」や「世界観」に価値を感じる層です。' +
+        '来店前にInstagramで店内の雰囲気や料理のこだわりを確認する行動が多いため、' +
+        '写真とテキストの両方で世界観を丁寧に伝えることが重要です。';
+
+      const strength =
+        '・' +
+        mainMenu +
+        'を中心とした料理クオリティ\n' +
+        (secondMenu
+          ? '・' + secondMenu + ' など、季節感のある一皿\n'
+          : '') +
+        (hasCourse
+          ? '・コース全体で物語性のある体験設計\n'
+          : '') +
+        '・' +
+        concept +
+        ' という空間デザイン\n' +
+        '・職人の手仕事や日本酒ペアリングなど、ストーリー性の高い要素';
+
+      const coreMessage =
+        '「' +
+        concept +
+        '」を一晩を通して味わえる、' +
+        mainMenu +
+        '中心の' +
+        category +
+        '体験。' +
+        '日常の延長ではなく、“少しだけ特別な夜”を過ごしたい人のための一軒。';
+
+      const objective =
+        '短期：' +
+        target +
+        'の中での認知獲得と「行ってみたい店リスト」入り\n' +
+        '中期：Instagram経由の予約・問い合わせ増加による ' +
+        goal +
+        '\n' +
+        '長期：ストーリー発信を通じたブランドファン化（来店頻度・客単価の向上）';
+
+      const contentStrategy =
+        '・看板メニュー投稿で「この店といえばこれ」を固定化\n' +
+        '・店内・カウンター・盛り付けなど、空間と体験が伝わる写真を定期的に発信\n' +
         '・' +
         (secondMenu || '季節メニュー') +
-        ' など季節感のある一皿で、フォローする理由をつくる\n';
-      text +=
-        '・職人のこだわりやストーリーで、価格以上の価値を感じてもらう\n';
-      text +=
-        '・予約方法やアクセス情報の投稿で、「気になった瞬間」に来店につなげる\n\n';
+        'で季節感とフォローする理由を作る\n' +
+        '・職人の所作や仕込み風景で、価格以上の価値を感じてもらう\n' +
+        '・予約方法・アクセス投稿で「気になった瞬間」に行動できる導線を用意する';
 
-      text += '■トーン＆マナー\n';
-      text +=
-        '落ち着き・上質さ・大人っぽさを大事にしつつ、写真や色味を統一してブランド感を出します。\n\n';
+      const visualGuide =
+        '・ブランドカラー：黒 × 木目 × 暖色系のライティング\n' +
+        '・トーン：落ち着き・余白・職人性。過度なポップさは避ける\n' +
+        '・写真：コースの流れが伝わる引きのカットと、湯気や質感が伝わる寄りのカットを混在させる\n' +
+        '・構図：カウンター越しの斜め45°や真上からのフラットレイを基調に統一\n' +
+        '・テキスト：画像内の文字は最小限に、キャプションで物語を補完';
 
-      text += '■この9投稿セットでできること\n';
-      text +=
-        '認知 → 興味 → 比較検討 → 予約 → ファン化 までを1セットの流れでカバーする構成になっています。';
-
-      return text;
+      return {
+        overview,
+        targetInsight,
+        strength,
+        coreMessage,
+        objective,
+        contentStrategy,
+        visualGuide,
+      };
     }
 
     // 9投稿分のテキスト構成ロジック
